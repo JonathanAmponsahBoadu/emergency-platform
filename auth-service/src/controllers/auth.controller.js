@@ -14,7 +14,7 @@ const {
 } = require("../models/user.model");
 
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = "15m";
+const JWT_EXPIRES_IN = "24h";
 const REFRESH_EXPIRES_IN = "7d";
 
 const generateAccessToken = (user) => {
