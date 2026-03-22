@@ -10,7 +10,14 @@ const options = {
         "Emergency Incident Service for the National Emergency Response Platform",
     },
     servers: [
-      { url: "http://localhost:3002", description: "Development server" },
+      {
+        url: "https://emergency-incident-service.onrender.com",
+        description: "Production server",
+      },
+      {
+        url: "http://localhost:3002",
+        description: "Development server",
+      },
     ],
     components: {
       securitySchemes: {
