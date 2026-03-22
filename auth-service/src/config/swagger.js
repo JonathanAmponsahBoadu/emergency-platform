@@ -11,6 +11,10 @@ const options = {
     },
     servers: [
       {
+        url: "https://emergency-platform-vbl4.onrender.com",
+        description: "Production server",
+      },
+      {
         url: "http://localhost:3001",
         description: "Development server",
       },
