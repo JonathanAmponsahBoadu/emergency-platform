@@ -10,7 +10,14 @@ const options = {
         "Analytics and Monitoring Service for the National Emergency Response Platform",
     },
     servers: [
-      { url: "http://localhost:3004", description: "Development server" },
+      {
+        url: "https://emergency-analytics-service.onrender.com",
+        description: "Production server",
+      },
+      {
+        url: "http://localhost:3004",
+        description: "Development server",
+      },
     ],
     components: {
       securitySchemes: {

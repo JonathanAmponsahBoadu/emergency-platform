@@ -10,7 +10,14 @@ const options = {
         "Dispatch Tracking Service for the National Emergency Response Platform",
     },
     servers: [
-      { url: "http://localhost:3003", description: "Development server" },
+      {
+        url: "https://emergency-dispatch-service.onrender.com",
+        description: "Production server",
+      },
+      {
+        url: "http://localhost:3003",
+        description: "Development server",
+      },
     ],
     components: {
       securitySchemes: {
