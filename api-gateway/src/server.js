@@ -399,6 +399,8 @@ const proxy = (target) =>
   createProxyMiddleware({
     target,
     changeOrigin: true,
+    timeout: 60000,
+    proxyTimeout: 60000,
     on: {
       error: (err, req, res) => {
         console.error(`❌ Proxy error → ${target}:`, err.message);
@@ -413,6 +415,7 @@ const proxy = (target) =>
       },
     },
   });
+
 
 // Proxy routes
 app.use("/api/auth", proxy(process.env.AUTH_SERVICE_URL));
