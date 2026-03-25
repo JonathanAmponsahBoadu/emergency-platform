@@ -11,7 +11,7 @@ const options = {
     },
     servers: [
       {
-        url: "https://emergency-incident-service.onrender.com",
+        url: "https://emergency-incident-service-uq3s.onrender.com",
         description: "Production server",
       },
       {

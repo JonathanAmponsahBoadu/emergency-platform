@@ -380,7 +380,8 @@ app.get("/", (req, res) => {
 
         <div class="footer">
           <p>All API requests should be routed through the gateway</p>
-          <div class="gateway-url">https://emergency-api-gateway.onrender.com</div>
+          <div class="gateway-url">https://emergency-api-gateway-hq5m.onrender.com
+</div>
           <br/>
           <p style="margin-top:16px;">
             <a href="/health">Health Check</a> · CPEN 421 · First Semester 2025/2026

@@ -11,7 +11,7 @@ const options = {
     },
     servers: [
       {
-        url: "https://emergency-analytics-service.onrender.com",
+        url: "https://emergency-analytics-service-los5.onrender.com",
         description: "Production server",
       },
       {
