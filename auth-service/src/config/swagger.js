@@ -11,7 +11,7 @@ const options = {
     },
     servers: [
       {
-        url: "https://emergency-platform-vbl4.onrender.com",
+        url: "https://emergency-platform-p89x.onrender.com",
         description: "Production server",
       },
       {
