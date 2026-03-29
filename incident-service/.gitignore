@@ -1,3 +1,5 @@
 node_modules
 .env
 seed_stations.js
+check_db.js
+link_units.js
