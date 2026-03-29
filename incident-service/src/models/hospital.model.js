@@ -21,11 +21,11 @@ const getAvailableHospitals = async () => {
 };
 
 const createHospital = async (data) => {
-  const { name, latitude, longitude, total_beds, available_beds } = data;
+  const { name, latitude, longitude, total_beds, available_beds, type } = data;
   const result = await pool.query(
-    `INSERT INTO hospitals (name, latitude, longitude, total_beds, available_beds)
-     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-    [name, latitude, longitude, total_beds, available_beds],
+    `INSERT INTO hospitals (name, latitude, longitude, total_beds, available_beds, type)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    [name, latitude, longitude, total_beds, available_beds, type || "hospital"],
   );
   return result.rows[0];
 };
@@ -52,8 +52,8 @@ const getHospitalsWithResponders = async () => {
       ) as responders
     FROM hospitals h
     LEFT JOIN responders r ON h.hospital_id = r.hospital_id
-    GROUP BY h.hospital_id
-    ORDER BY h.name ASC
+    GROUP BY h.hospital_id, h.name
+    ORDER BY h.type DESC, h.name ASC
   `);
   return result.rows;
 };

@@ -23,7 +23,8 @@ const getHospitals = async (req, res) => {
 // POST /api/hospitals
 const addHospital = async (req, res) => {
   try {
-    const { name, latitude, longitude, total_beds, available_beds } = req.body;
+    const { name, latitude, longitude, total_beds, available_beds, type } =
+      req.body;
 
     if (!name || !latitude || !longitude) {
       return res.status(400).json({
@@ -38,6 +39,7 @@ const addHospital = async (req, res) => {
       longitude,
       total_beds: total_beds || 0,
       available_beds: available_beds || 0,
+      type: type || "hospital",
     });
 
     return res.status(201).json({
