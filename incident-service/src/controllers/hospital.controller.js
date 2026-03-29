@@ -3,6 +3,7 @@ const {
   getHospitalById,
   createHospital,
   updateHospitalCapacity,
+  getHospitalsWithResponders,
 } = require("../models/hospital.model");
 const { publishEvent } = require("../config/rabbitmq");
 
@@ -85,10 +86,20 @@ const updateCapacity = async (req, res) => {
     });
   } catch (err) {
     console.error("Update capacity error:", err);
+  }
+};
+
+// GET /api/hospitals/full
+const getHospitalsFull = async (req, res) => {
+  try {
+    const hospitals = await getHospitalsWithResponders();
+    return res.status(200).json({ success: true, data: hospitals });
+  } catch (err) {
+    console.error("Get hospitals full error:", err);
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });
   }
 };
 
-module.exports = { getHospitals, addHospital, updateCapacity };
+module.exports = { getHospitals, addHospital, updateCapacity, getHospitalsFull };

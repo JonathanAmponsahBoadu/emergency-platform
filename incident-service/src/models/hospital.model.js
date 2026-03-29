@@ -42,10 +42,27 @@ const updateHospitalCapacity = async (hospitalId, totalBeds, availableBeds) => {
   return result.rows[0];
 };
 
+const getHospitalsWithResponders = async () => {
+  const result = await pool.query(`
+    SELECT 
+      h.*,
+      COALESCE(
+        json_agg(r.*) FILTER (WHERE r.responder_id IS NOT NULL),
+        '[]'
+      ) as responders
+    FROM hospitals h
+    LEFT JOIN responders r ON h.hospital_id = r.hospital_id
+    GROUP BY h.hospital_id
+    ORDER BY h.name ASC
+  `);
+  return result.rows;
+};
+
 module.exports = {
   getAllHospitals,
   getHospitalById,
   getAvailableHospitals,
   createHospital,
   updateHospitalCapacity,
+  getHospitalsWithResponders,
 };

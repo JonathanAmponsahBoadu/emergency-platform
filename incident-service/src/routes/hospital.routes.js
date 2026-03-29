@@ -4,6 +4,7 @@ const {
   getHospitals,
   addHospital,
   updateCapacity,
+  getHospitalsFull,
 } = require("../controllers/hospital.controller");
 const { authenticate, authorize } = require("../middleware/auth.middleware");
 
@@ -25,6 +26,18 @@ const { authenticate, authorize } = require("../middleware/auth.middleware");
  *         description: List of hospitals
  */
 router.get("/", authenticate, getHospitals);
+
+/**
+ * @swagger
+ * /api/hospitals/full:
+ *   get:
+ *     summary: List all hospitals with nested responder details (Admin only)
+ *     tags: [Hospitals]
+ *     responses:
+ *       200:
+ *         description: List of hospitals with responders
+ */
+router.get("/full", authenticate, authorize("system_admin"), getHospitalsFull);
 
 /**
  * @swagger
