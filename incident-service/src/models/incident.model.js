@@ -33,33 +33,42 @@ const createIncident = async (data) => {
 };
 
 const getAllIncidents = async (filters = {}) => {
-  let query = `SELECT * FROM incidents`;
+  let query = `
+    SELECT i.*, r.name as responder_name, h.name as hospital_name
+    FROM incidents i
+    LEFT JOIN responders r ON i.assigned_unit_id = r.responder_id
+    LEFT JOIN hospitals h ON i.hospital_id = h.hospital_id
+  `;
   const params = [];
   const conditions = [];
 
   if (filters.status) {
     params.push(filters.status);
-    conditions.push(`status = $${params.length}`);
+    conditions.push(`i.status = $${params.length}`);
   }
 
   if (filters.incident_type) {
     params.push(filters.incident_type);
-    conditions.push(`incident_type = $${params.length}`);
+    conditions.push(`i.incident_type = $${params.length}`);
   }
 
   if (conditions.length > 0) {
     query += ` WHERE ${conditions.join(" AND ")}`;
   }
 
-  query += ` ORDER BY created_at DESC`;
+  query += ` ORDER BY i.created_at DESC`;
   const result = await pool.query(query, params);
   return result.rows;
 };
 
 const getOpenIncidents = async () => {
   const result = await pool.query(
-    `SELECT * FROM incidents 
-     WHERE status != 'resolved' ORDER BY created_at DESC`,
+    `SELECT i.*, r.name as responder_name, h.name as hospital_name
+     FROM incidents i
+     LEFT JOIN responders r ON i.assigned_unit_id = r.responder_id
+     LEFT JOIN hospitals h ON i.hospital_id = h.hospital_id
+     WHERE i.status != 'resolved' 
+     ORDER BY i.created_at DESC`,
   );
   return result.rows;
 };
