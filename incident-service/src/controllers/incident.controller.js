@@ -153,11 +153,14 @@ const createNewIncident = async (req, res) => {
       hospital_id: assignedHospitalId,
     });
 
+    // Fetch the fully enriched incident (with joins) for the response
+    const fullIncident = await getIncidentById(incident.incident_id);
+
     return res.status(201).json({
       success: true,
       message: "Incident created and responder dispatched",
       data: {
-        incident,
+        incident: fullIncident,
         assigned_responder: {
           responder_id: nearest.responder_id,
           name: nearest.name,
