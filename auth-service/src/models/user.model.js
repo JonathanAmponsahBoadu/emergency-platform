@@ -1,10 +1,10 @@
 const pool = require("../config/db");
 
-const createUser = async (name, email, passwordHash, role) => {
+const createUser = async (name, email, passwordHash, role, hospitalId = null) => {
   const result = await pool.query(
-    `INSERT INTO users (name, email, password_hash, role) 
-     VALUES ($1, $2, $3, $4) RETURNING *`,
-    [name, email, passwordHash, role],
+    `INSERT INTO users (name, email, password_hash, role, hospital_id) 
+     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+    [name, email, passwordHash, role, hospitalId],
   );
   return result.rows[0];
 };
@@ -19,7 +19,7 @@ const findUserByEmail = async (email) => {
 
 const findUserById = async (userId) => {
   const result = await pool.query(
-    `SELECT user_id, name, email, role, is_active, created_at 
+    `SELECT user_id, name, email, role, hospital_id, is_active, created_at 
      FROM users WHERE user_id = $1`,
     [userId],
   );
@@ -28,21 +28,22 @@ const findUserById = async (userId) => {
 
 const getAllUsers = async () => {
   const result = await pool.query(
-    `SELECT user_id, name, email, role, is_active, created_at 
+    `SELECT user_id, name, email, role, hospital_id, is_active, created_at 
      FROM users ORDER BY created_at DESC`,
   );
   return result.rows;
 };
 
 const updateUser = async (userId, fields) => {
-  const { name, role, is_active } = fields;
+  const { name, role, is_active, hospital_id } = fields;
   const result = await pool.query(
     `UPDATE users SET name = COALESCE($1, name), 
      role = COALESCE($2, role), 
      is_active = COALESCE($3, is_active),
+     hospital_id = COALESCE($4, hospital_id),
      updated_at = NOW()
-     WHERE user_id = $4 RETURNING *`,
-    [name, role, is_active, userId],
+     WHERE user_id = $5 RETURNING *`,
+    [name, role, is_active, hospital_id, userId],
   );
   return result.rows[0];
 };

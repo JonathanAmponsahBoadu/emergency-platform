@@ -8,7 +8,13 @@ const {
 // GET /api/responders
 const getResponders = async (req, res) => {
   try {
-    const responders = await getAllResponders();
+    let responders = await getAllResponders();
+
+    // Filter for institutional admins
+    if (req.user?.role !== "system_admin" && req.user?.hospital_id) {
+      responders = responders.filter(r => r.hospital_id === req.user.hospital_id);
+    }
+
     return res.status(200).json({ success: true, data: responders });
   } catch (err) {
     console.error("Get responders error:", err);
@@ -38,12 +44,14 @@ const registerResponder = async (req, res) => {
       });
     }
 
+    const finalHospitalId = req.user?.role === "system_admin" ? hospital_id : req.user?.hospital_id;
+
     const responder = await createResponder({
       name,
       type,
       latitude,
       longitude,
-      hospital_id,
+      hospital_id: finalHospitalId,
       contact_phone,
       region,
     });
@@ -64,13 +72,18 @@ const registerResponder = async (req, res) => {
 const updateResponderById = async (req, res) => {
   try {
     const { id } = req.params;
-    const updated = await updateResponder(id, req.body);
 
-    if (!updated) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Responder not found" });
+    // Check ownership
+    const existing = await getResponderById(id);
+    if (!existing) {
+       return res.status(404).json({ success: false, message: "Responder not found" });
     }
+
+    if (req.user?.role !== "system_admin" && existing.hospital_id !== req.user?.hospital_id) {
+       return res.status(403).json({ success: false, message: "Access denied" });
+    }
+
+    const updated = await updateResponder(id, req.body);
 
     return res
       .status(200)

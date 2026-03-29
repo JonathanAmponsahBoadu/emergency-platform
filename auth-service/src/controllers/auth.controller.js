@@ -18,9 +18,13 @@ const JWT_EXPIRES_IN = "24h";
 const REFRESH_EXPIRES_IN = "7d";
 
 const generateAccessToken = (user) => {
-  return jwt.sign({ userId: user.user_id, role: user.role }, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
-  });
+  return jwt.sign(
+    { userId: user.user_id, role: user.role, hospitalId: user.hospital_id },
+    JWT_SECRET,
+    {
+      expiresIn: JWT_EXPIRES_IN,
+    },
+  );
 };
 
 const generateRefreshToken = () => {
@@ -30,7 +34,7 @@ const generateRefreshToken = () => {
 // POST /api/auth/register
 const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, hospital_id } = req.body;
 
     if (!name || !email || !password || !role) {
       return res
@@ -46,7 +50,7 @@ const register = async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await createUser(name, email, passwordHash, role);
+    const user = await createUser(name, email, passwordHash, role, hospital_id);
 
     await logAction(user.user_id, "USER_REGISTERED", req.ip);
 
@@ -58,6 +62,7 @@ const register = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        hospital_id: user.hospital_id,
       },
     });
   } catch (err) {
@@ -115,6 +120,7 @@ const login = async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
+          hospital_id: user.hospital_id,
         },
       },
     });
@@ -299,7 +305,12 @@ const verifyToken = async (req, res) => {
     return res.status(200).json({
       success: true,
       valid: true,
-      user: { userId: user.user_id, role: user.role, name: user.name },
+      user: {
+        userId: user.user_id,
+        role: user.role,
+        name: user.name,
+        hospital_id: user.hospital_id,
+      },
     });
   } catch (err) {
     return res

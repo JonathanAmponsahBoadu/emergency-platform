@@ -10,7 +10,13 @@ const { publishEvent } = require("../config/rabbitmq");
 // GET /api/hospitals
 const getHospitals = async (req, res) => {
   try {
-    const hospitals = await getAllHospitals();
+    let hospitals = await getAllHospitals();
+    
+    // Filter for institutional admins
+    if (req.user?.role !== "system_admin" && req.user?.hospital_id) {
+      hospitals = hospitals.filter(h => h.hospital_id === req.user.hospital_id);
+    }
+
     return res.status(200).json({ success: true, data: hospitals });
   } catch (err) {
     console.error("Get hospitals error:", err);
@@ -61,6 +67,11 @@ const updateCapacity = async (req, res) => {
     const { id } = req.params;
     const { total_beds, available_beds } = req.body;
 
+    // Check permission
+    if (req.user?.role !== "system_admin" && req.user?.hospital_id !== id) {
+      return res.status(403).json({ success: false, message: "Access denied" });
+    }
+
     const hospital = await updateHospitalCapacity(
       id,
       total_beds,
@@ -94,7 +105,13 @@ const updateCapacity = async (req, res) => {
 // GET /api/hospitals/full
 const getHospitalsFull = async (req, res) => {
   try {
-    const hospitals = await getHospitalsWithResponders();
+    let hospitals = await getHospitalsWithResponders();
+    
+    // Filter for institutional admins
+    if (req.user?.role !== "system_admin" && req.user?.hospital_id) {
+      hospitals = hospitals.filter(h => h.hospital_id === req.user.hospital_id);
+    }
+
     return res.status(200).json({ success: true, data: hospitals });
   } catch (err) {
     console.error("Get hospitals full error:", err);
