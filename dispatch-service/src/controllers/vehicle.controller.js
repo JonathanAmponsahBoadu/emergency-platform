@@ -185,6 +185,32 @@ const pushVehicleLocation = async (req, res, io) => {
   }
 };
 
+// PATCH /api/vehicles/:id/assign — link/unlink driver
+const assignDriver = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { driver_id } = req.body;
+
+    const vehicle = await assignDriverToVehicle(id, driver_id);
+    if (!vehicle) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Vehicle not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: driver_id ? "Driver assigned" : "Vehicle released",
+      data: vehicle,
+    });
+  } catch (err) {
+    console.error("Assign driver error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+
 module.exports = {
   registerVehicle,
   getVehicles,
@@ -192,4 +218,5 @@ module.exports = {
   getVehicleLocation,
   getVehicleHistory,
   pushVehicleLocation,
+  assignDriver,
 };

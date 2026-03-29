@@ -47,10 +47,20 @@ const updateVehicleStatus = async (vehicleId, status) => {
   return result.rows[0];
 };
 
+const assignDriverToVehicle = async (vehicleId, driverId) => {
+  const result = await pool.query(
+    `UPDATE vehicles SET driver_id = $1, updated_at = NOW()
+     WHERE vehicle_id = $2 RETURNING *`,
+    [driverId || null, vehicleId],
+  );
+  return result.rows[0];
+};
+
 module.exports = {
   getAllVehicles,
   getVehicleById,
   createVehicle,
   updateVehicleLocation,
   updateVehicleStatus,
+  assignDriverToVehicle,
 };

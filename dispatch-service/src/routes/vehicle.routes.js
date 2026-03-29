@@ -7,6 +7,7 @@ const {
   getVehicleLocation,
   getVehicleHistory,
   pushVehicleLocation,
+  assignDriver,
 } = require("../controllers/vehicle.controller");
 const { authenticate, authorize } = require("../middleware/auth.middleware");
 
@@ -166,6 +167,39 @@ router.get(
   authenticate,
   authorize("system_admin"),
   getVehicleHistory,
+);
+
+/**
+ * @swagger
+ * /api/vehicles/{id}/assign:
+ *   patch:
+ *     summary: Assign or unassign a driver to a vehicle
+ *     tags: [Vehicles]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               driver_id:
+ *                 type: string
+ *                 nullable: true
+ *     responses:
+ *       200:
+ *         description: Assignment updated
+ */
+router.patch(
+  "/:id/assign",
+  authenticate,
+  authorize("ambulance_driver", "police_driver", "fire_driver", "system_admin"),
+  assignDriver
 );
 
 module.exports = router;
