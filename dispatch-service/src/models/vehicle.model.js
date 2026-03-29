@@ -16,11 +16,11 @@ const getVehicleById = async (vehicleId) => {
 };
 
 const createVehicle = async (data) => {
-  const { plate_number, vehicle_type, station_id, driver_id } = data;
+  const { vehicle_id, plate_number, vehicle_type, station_id, driver_id } = data;
   const result = await pool.query(
-    `INSERT INTO vehicles (plate_number, vehicle_type, station_id, driver_id)
-     VALUES ($1, $2, $3, $4) RETURNING *`,
-    [plate_number, vehicle_type, station_id || null, driver_id || null],
+    `INSERT INTO vehicles (vehicle_id, plate_number, vehicle_type, station_id, driver_id)
+     VALUES (COALESCE($1, gen_random_uuid()), $2, $3, $4, $5) RETURNING *`,
+    [vehicle_id || null, plate_number, vehicle_type, station_id || null, driver_id || null],
   );
   return result.rows[0];
 };

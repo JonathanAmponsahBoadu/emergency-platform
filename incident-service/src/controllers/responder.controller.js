@@ -24,6 +24,8 @@ const getResponders = async (req, res) => {
   }
 };
 
+const { publishEvent, EXCHANGES } = require("../config/rabbitmq");
+
 // POST /api/responders
 const registerResponder = async (req, res) => {
   try {
@@ -55,6 +57,18 @@ const registerResponder = async (req, res) => {
       contact_phone,
       region,
     });
+
+    // Notify Dispatch Service
+    await publishEvent(EXCHANGES.EMERGENCY, "incident.responder.created", {
+      responder_id: responder.responder_id,
+      name: responder.name,
+      type: responder.type,
+      hospital_id: responder.hospital_id,
+      latitude: responder.latitude,
+      longitude: responder.longitude,
+      contact_phone: responder.contact_phone,
+    });
+
     return res.status(201).json({
       success: true,
       message: "Responder registered",

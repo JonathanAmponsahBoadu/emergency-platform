@@ -15,9 +15,10 @@ const QUEUES = {
   INCIDENT_RESOLVED: "q.incident.resolved",
   DISPATCH_ARRIVED: "q.dispatch.arrived",
   DISPATCH_RETURNING: "q.dispatch.returning",
+  RESPONDER_CREATED: "q.incident.responder.created",
 };
 
-const connect = async (onIncidentDispatched) => {
+const connect = async (onIncidentDispatched, onResponderCreated) => {
   try {
     connection = await amqp.connect(process.env.RABBITMQ_URL);
     channel = await connection.createChannel();
@@ -60,6 +61,13 @@ const connect = async (onIncidentDispatched) => {
       EXCHANGES.DISPATCH,
       "dispatch.vehicle.returning",
     );
+    
+    await channel.assertQueue(QUEUES.RESPONDER_CREATED, { durable: true });
+    await channel.bindQueue(
+      QUEUES.RESPONDER_CREATED,
+      EXCHANGES.EMERGENCY,
+      "incident.responder.created",
+    );
 
     // Consume incident.dispatched events
     channel.consume(QUEUES.INCIDENT_DISPATCHED, async (msg) => {
@@ -74,20 +82,30 @@ const connect = async (onIncidentDispatched) => {
       }
     });
 
+    // Consume incident.responder.created events
+    channel.consume(QUEUES.RESPONDER_CREATED, async (msg) => {
+      if (msg) {
+        const event = JSON.parse(msg.content.toString());
+        console.log("📥 Event received: responder.created", event.data.responder_id);
+        if (onResponderCreated) await onResponderCreated(event.data);
+        channel.ack(msg);
+      }
+    });
+
     console.log("✅ RabbitMQ connected");
 
     connection.on("error", (err) => {
       console.error("❌ RabbitMQ error:", err.message);
-      setTimeout(() => connect(onIncidentDispatched), 5000);
+      setTimeout(() => connect(onIncidentDispatched, onResponderCreated), 5000);
     });
 
     connection.on("close", () => {
       console.warn("⚠️ RabbitMQ closed, reconnecting...");
-      setTimeout(() => connect(onIncidentDispatched), 5000);
+      setTimeout(() => connect(onIncidentDispatched, onResponderCreated), 5000);
     });
   } catch (err) {
     console.error("❌ RabbitMQ connection failed:", err.message);
-    setTimeout(() => connect(onIncidentDispatched), 5000);
+    setTimeout(() => connect(onIncidentDispatched, onResponderCreated), 5000);
   }
 };
 

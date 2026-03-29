@@ -10,7 +10,7 @@ const redis = require("./config/redis");
 const swaggerSpec = require("./config/swagger");
 const { connect: connectRabbitMQ } = require("./config/rabbitmq");
 const { createDispatch } = require("./models/dispatch.model");
-const { updateVehicleLocation } = require("./models/vehicle.model");
+const { updateVehicleLocation, createVehicle } = require("./models/vehicle.model");
 const { saveLocationHistory } = require("./models/location.model");
 const { getDispatchByIncidentId } = require("./models/dispatch.model");
 const vehicleRoutes = require("./routes/vehicle.routes");
@@ -97,6 +97,20 @@ tracking.on("connection", (socket) => {
               timestamp: new Date().toISOString(),
             });
         }
+
+        // Broadcast to station room
+        const vehicle = await getVehicleById(vehicle_id);
+        if (vehicle && vehicle.station_id) {
+          tracking
+            .to(`station:${vehicle.station_id}`)
+            .emit("vehicle:location:update", {
+              vehicle_id,
+              lat,
+              lng,
+              speed_kmh: speed_kmh || 0,
+              timestamp: new Date().toISOString(),
+            });
+        }
       } catch (err) {
         console.error("❌ GPS push error:", err.message);
       }
@@ -120,9 +134,31 @@ const onIncidentDispatched = async (data) => {
   }
 };
 
+const onResponderCreated = async (data) => {
+  try {
+    const { responder_id, name, type, hospital_id, contact_phone } = data;
+    console.log(`📥 Syncing responder: ${name} (${type})`);
+    
+    // Convert incident types to dispatch types if necessary
+    let vType = "ambulance";
+    if (type === "police_car") vType = "police";
+    if (type === "fire_truck") vType = "fire_truck";
+
+    await createVehicle({
+      vehicle_id: responder_id,
+      plate_number: contact_phone || `UNIT-${responder_id.slice(0, 4)}`,
+      vehicle_type: vType,
+      station_id: hospital_id,
+    });
+    console.log(`✅ Vehicle created/synced: ${responder_id}`);
+  } catch (err) {
+    console.error("❌ Error syncing responder to vehicle:", err.message);
+  }
+};
+
 const PORT = process.env.PORT || 3003;
 server.listen(PORT, async () => {
   console.log(`🚀 Dispatch Service running on port ${PORT}`);
   console.log(`📚 Swagger docs at http://localhost:${PORT}/api-docs`);
-  await connectRabbitMQ(onIncidentDispatched);
+  await connectRabbitMQ(onIncidentDispatched, onResponderCreated);
 });
