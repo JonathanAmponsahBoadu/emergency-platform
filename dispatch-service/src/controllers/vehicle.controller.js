@@ -4,6 +4,7 @@ const {
   createVehicle,
   updateVehicleLocation,
   updateVehicleStatus,
+  assignDriverToVehicle,
 } = require("../models/vehicle.model");
 const {
   saveLocationHistory,

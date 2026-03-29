@@ -41,10 +41,19 @@ const tracking = io.of("/tracking");
 tracking.on("connection", (socket) => {
   console.log(`🔌 Driver/Admin connected: ${socket.id}`);
 
-  // Admin joins incident room to receive live updates
+  // Dynamic room joining
+  socket.on("join:room", ({ room }) => {
+    socket.join(room);
+    console.log(`👁️ Socket ${socket.id} joined room: ${room}`);
+  });
+
+  // Legacy support for incident joins
   socket.on("join:incident", ({ incident_id }) => {
-    socket.join(`incident:${incident_id}`);
-    console.log(`👁️ Socket ${socket.id} joined incident room: ${incident_id}`);
+    const room = incident_id.startsWith("incident:") || incident_id.startsWith("station:") 
+      ? incident_id 
+      : `incident:${incident_id}`;
+    socket.join(room);
+    console.log(`👁️ Socket ${socket.id} joined (legacy): ${room}`);
   });
 
   // Driver pushes GPS location via WebSocket
