@@ -47,6 +47,12 @@ tracking.on("connection", (socket) => {
     console.log(`👁️ Socket ${socket.id} joined room: ${room}`);
   });
 
+  // Real-time Fleet Tracking Joins
+  socket.on("join:room", ({ room }) => {
+    socket.join(room);
+    console.log(`📡 Socket ${socket.id} joined room: ${room}`);
+  });
+
   // Legacy support for incident joins
   socket.on("join:incident", ({ incident_id }) => {
     const room = incident_id.startsWith("incident:") || incident_id.startsWith("station:") 
