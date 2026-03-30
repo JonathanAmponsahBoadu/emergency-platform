@@ -107,7 +107,7 @@ tracking.on("connection", (socket) => {
             });
         }
 
-        // Broadcast to station room
+        // 1. Broadcast to specific station room (for institutional admins)
         const vehicle = await getVehicleById(vehicle_id);
         if (vehicle && vehicle.station_id) {
           tracking
@@ -120,6 +120,17 @@ tracking.on("connection", (socket) => {
               timestamp: new Date().toISOString(),
             });
         }
+
+        // 2. Broadcast to global fleet room (for system admins)
+        tracking
+          .to("station:all")
+          .emit("vehicle:location:update", {
+            vehicle_id,
+            lat,
+            lng,
+            speed_kmh: speed_kmh || 0,
+            timestamp: new Date().toISOString(),
+          });
       } catch (err) {
         console.error("❌ GPS push error:", err.message);
       }
