@@ -143,6 +143,23 @@ const onIncidentDispatched = async (data) => {
   }
 };
 
+const onResponderUpdated = async (data) => {
+  try {
+    const { responder_id, driver_id, is_available } = data;
+    console.log(`📥 Update received for responder: ${responder_id} (Driver: ${driver_id})`);
+    
+    await updateVehicleStatus(responder_id, is_available ? "idle" : "responding");
+    
+    // We also need to sync the driver_id in the vehicles table
+    await pool.query(
+      "UPDATE vehicles SET driver_id = $1, updated_at = NOW() WHERE vehicle_id = $2",
+      [driver_id || null, responder_id]
+    );
+  } catch (err) {
+    console.error("❌ Error handling responder.updated:", err.message);
+  }
+};
+
 const onResponderCreated = async (data) => {
   try {
     const { responder_id, name, type, hospital_id, contact_phone } = data;

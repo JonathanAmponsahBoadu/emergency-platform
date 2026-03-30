@@ -8,7 +8,10 @@ const incidentPool = new Pool({
 
 async function sync() {
   try {
-    console.log('🔄 Fetching responders from Incident DB directly...');
+    console.log('🔄 Wiping existing dispatch vehicles...');
+    await pool.query('TRUNCATE TABLE vehicles CASCADE');
+
+    console.log('🔄 Fetching responders from Incident DB...');
     const resp = await incidentPool.query('SELECT * FROM responders');
     const responders = resp.rows;
 
@@ -17,26 +20,24 @@ async function sync() {
     for (const r of responders) {
       const vType = r.type === 'police_car' ? 'police' : (r.type === 'fire_truck' ? 'fire_truck' : 'ambulance');
       
+      console.log(`   SYNCING: "${r.name}" (ID: ${r.responder_id})`);
+      
       await pool.query(
-        `INSERT INTO vehicles (vehicle_id, plate_number, vehicle_type, station_id)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO vehicles (vehicle_id, plate_number, vehicle_type, station_id, driver_id)
+         VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (vehicle_id) DO UPDATE SET
          plate_number = EXCLUDED.plate_number,
          vehicle_type = EXCLUDED.vehicle_type,
-         station_id = EXCLUDED.station_id`,
-        [r.responder_id, r.contact_phone || `UNIT-${r.responder_id.slice(0, 4)}`, vType, r.hospital_id]
+         station_id = EXCLUDED.station_id,
+         driver_id = EXCLUDED.driver_id`,
+        [r.responder_id, r.contact_phone || `UNIT-${r.responder_id.slice(0, 4)}`, vType, r.hospital_id, r.driver_id]
       );
-      console.log(`✅ Synced: ${r.name}`);
     }
 
     console.log('🎉 Sync complete!');
     process.exit(0);
   } catch (err) {
-    if (err.response) {
-      console.error('❌ Sync failed (Response):', err.response.status, err.response.data);
-    } else {
-      console.error('❌ Sync failed (Request):', err.message);
-    }
+    console.error('❌ Sync failed:', err.message);
     process.exit(1);
   }
 }

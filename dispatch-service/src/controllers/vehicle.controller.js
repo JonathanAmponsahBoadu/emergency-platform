@@ -205,12 +205,12 @@ const assignDriver = async (req, res) => {
       data: vehicle,
     });
   } catch (err) {
-    console.error("Assign driver error:", err);
+    console.error(`❌ Assign driver error [Vehicle: ${req.params.id}, Driver: ${req.body.driver_id}]:`, err.stack || err.message);
     return res
       .status(500)
-      .json({ success: false, message: "Internal server error" });
+      .json({ success: false, message: "Internal server error", error: err.message });
   }
-};
+}
 
 module.exports = {
   registerVehicle,

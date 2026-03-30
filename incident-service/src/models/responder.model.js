@@ -36,10 +36,11 @@ const createResponder = async (data) => {
     hospital_id,
     contact_phone,
     region,
+    driver_id,
   } = data;
   const result = await pool.query(
-    `INSERT INTO responders (name, type, latitude, longitude, hospital_id, contact_phone, region)
-     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+    `INSERT INTO responders (name, type, latitude, longitude, hospital_id, contact_phone, region, driver_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
     [
       name,
       type,
@@ -48,6 +49,7 @@ const createResponder = async (data) => {
       hospital_id || null,
       contact_phone,
       region,
+      driver_id || null,
     ],
   );
   return result.rows[0];
@@ -63,7 +65,7 @@ const updateResponderAvailability = async (responderId, isAvailable) => {
 };
 
 const updateResponder = async (responderId, data) => {
-  const { name, latitude, longitude, is_available, contact_phone, region } =
+  const { name, latitude, longitude, is_available, contact_phone, region, driver_id } =
     data;
   const result = await pool.query(
     `UPDATE responders SET
@@ -73,8 +75,9 @@ const updateResponder = async (responderId, data) => {
        is_available = COALESCE($4, is_available),
        contact_phone = COALESCE($5, contact_phone),
        region = COALESCE($6, region),
+       driver_id = COALESCE($7, driver_id),
        updated_at = NOW()
-     WHERE responder_id = $7 RETURNING *`,
+     WHERE responder_id = $8 RETURNING *`,
     [
       name,
       latitude,
@@ -82,6 +85,7 @@ const updateResponder = async (responderId, data) => {
       is_available,
       contact_phone,
       region,
+      driver_id,
       responderId,
     ],
   );

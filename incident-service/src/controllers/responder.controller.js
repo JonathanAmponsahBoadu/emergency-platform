@@ -98,6 +98,17 @@ const updateResponderById = async (req, res) => {
     }
 
     const updated = await updateResponder(id, req.body);
+    
+    // Notify Dispatch service about the change (especially for driver_id)
+    await publishEvent(EXCHANGES.EMERGENCY, "incident.responder.updated", {
+      responder_id: updated.responder_id,
+      name: updated.name,
+      type: updated.type,
+      driver_id: updated.driver_id,
+      is_available: updated.is_available,
+      contact_phone: updated.contact_phone,
+      hospital_id: updated.hospital_id,
+    });
 
     return res
       .status(200)

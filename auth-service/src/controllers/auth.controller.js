@@ -229,7 +229,13 @@ const getProfile = async (req, res) => {
 // GET /api/auth/users
 const getUsers = async (req, res) => {
   try {
-    const users = await getAllUsers();
+    let users = await getAllUsers();
+    
+    // Filter by hospital if not system admin
+    if (req.user.role !== "system_admin") {
+      users = users.filter(u => u.hospital_id === req.user.hospitalId);
+    }
+
     return res.status(200).json({ success: true, data: users });
   } catch (err) {
     console.error("Get users error:", err);

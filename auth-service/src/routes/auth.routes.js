@@ -153,7 +153,12 @@ router.get("/profile", authenticate, getProfile);
  *       403:
  *         description: Access denied
  */
-router.get("/users", authenticate, authorize("system_admin"), getUsers);
+router.get(
+  "/users",
+  authenticate,
+  authorize("system_admin", "hospital_admin", "police_admin", "fire_admin"),
+  getUsers,
+);
 
 /**
  * @swagger
