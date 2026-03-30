@@ -1,3 +1,4 @@
 node_modules
 .env
 check_vehicles.js
+sync_vehicles.js
