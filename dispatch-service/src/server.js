@@ -10,7 +10,7 @@ const redis = require("./config/redis");
 const swaggerSpec = require("./config/swagger");
 const { connect: connectRabbitMQ } = require("./config/rabbitmq");
 const { createDispatch } = require("./models/dispatch.model");
-const { updateVehicleLocation, createVehicle } = require("./models/vehicle.model");
+const { updateVehicleLocation, createVehicle, getVehicleById } = require("./models/vehicle.model");
 const { saveLocationHistory } = require("./models/location.model");
 const { getDispatchByIncidentId } = require("./models/dispatch.model");
 const vehicleRoutes = require("./routes/vehicle.routes");
@@ -99,7 +99,18 @@ tracking.on("connection", (socket) => {
           speed_kmh || 0,
         );
 
-        // Broadcast to incident room
+        // 1. GLOBAL BROADCAST FIRST (for system admins & reliability)
+        tracking
+          .to("station:all")
+          .emit("vehicle:location:update", {
+            vehicle_id,
+            lat,
+            lng,
+            speed_kmh: speed_kmh || 0,
+            timestamp: new Date().toISOString(),
+          });
+
+        // 2. Broadcast to incident room if applicable
         if (incident_id) {
           tracking
             .to(`incident:${incident_id}`)
@@ -113,7 +124,7 @@ tracking.on("connection", (socket) => {
             });
         }
 
-        // 1. Broadcast to specific station room (for institutional admins)
+        // 3. Broadcast to specific station room (for institutional admins)
         const vehicle = await getVehicleById(vehicle_id);
         if (vehicle && vehicle.station_id) {
           tracking
@@ -126,17 +137,6 @@ tracking.on("connection", (socket) => {
               timestamp: new Date().toISOString(),
             });
         }
-
-        // 2. Broadcast to global fleet room (for system admins)
-        tracking
-          .to("station:all")
-          .emit("vehicle:location:update", {
-            vehicle_id,
-            lat,
-            lng,
-            speed_kmh: speed_kmh || 0,
-            timestamp: new Date().toISOString(),
-          });
       } catch (err) {
         console.error("❌ GPS push error:", err.message);
       }
